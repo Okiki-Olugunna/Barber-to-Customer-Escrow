@@ -5,7 +5,7 @@
 when the haircut is done:
 - an arbiter approves that the haircut is complete to a good standard 
 - the customer gets some of the accrued interest 
-- the barber gets some of the accrued interest as well (as incentive to use this dapp) 
+- the barber gets some of the accrued interest as well (as an incentive to use this dapp) 
 
 
 - the earlier the customer makes the booking, the more interest they can get
