@@ -9,7 +9,7 @@
 - the barber gets some of the accrued interest as well (as an incentive to use this dapp) 
 
 
-- the earlier the customer makes the booking, the more interest they can get
+The earlier the customer makes the booking, the more interest they can get
 
 
 if a customer cancels the booking: 
