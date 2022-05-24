@@ -14,10 +14,18 @@ contract HairBookingEscrow {
     mapping(uint256 => uint256) bookingIDToAmount;
     mapping(uint256 => address) bookingIDToCustomer;
 
-    mapping(uint256 => mapping(address => uint256)) bookingIDToCustomerToAmount;
+    // mapping(uint256 => mapping(address => uint256)) bookingIDToCustomerToAmount;
 
     mapping(address => uint256) cutomersToNumberOfBookings; // can give a discount after X amount of bookings
-    address[] allPreviousCustomers;
+    address[] allPreviousCustomers; 
+    
+    /* 
+    struct Appointment {
+        string name; 
+        address walletAddress; 
+        uint amountPaid; 
+    }
+    */ 
 
     // mainnet AAVE v2 lending pool
     ILendingPool pool =
