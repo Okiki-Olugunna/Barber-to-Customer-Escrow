@@ -6,8 +6,8 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/ILendingPool.sol";
 
 contract HairBookingEscrow {
-    address barber;
-    address arbiter;
+    address public barber;
+    address public arbiter;
 
     uint256[] bookingID;
     mapping(uint256 => bool) bookingExists;
@@ -26,6 +26,8 @@ contract HairBookingEscrow {
         uint256 amountPaid; 
         uint256 bookingID;
     }
+    
+    Appointment[] public appointments;
     */ 
 
     // mainnet AAVE v2 lending pool
