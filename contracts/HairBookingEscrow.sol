@@ -46,6 +46,7 @@ contract HairBookingEscrow {
     event bookingCancelled(address indexed canceller, uint256 bookingID);
     event paymentReceived(uint256);
     event paidInterestToCustomer(uint256);
+    event Tip(uint256);
 
     constructor(address _barber, address _arbiter) {
         barber = _barber;
@@ -107,6 +108,11 @@ contract HairBookingEscrow {
         // transferring the initial deposit + the remaining interest to the barber
         payable(barber).transfer(amountForBarber);
         emit paymentReceived(amountForBarber);
+    }
+    
+    function tip() external payable {
+        payable(barber).transfer(msg.value);
+        emit Tip(msg.value);
     }
 
     // function to cancel the booking
