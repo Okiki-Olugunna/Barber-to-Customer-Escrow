@@ -57,6 +57,7 @@ contract HairBookingEscrow {
         // adding 1 to the total number of bookings this customer has made
         cutomersToNumberOfBookings[msg.sender] += 1;
 
+        // initialising the booking ID 
         uint256 newBooking = bookingID.length + 1;
         // adding the booking ID to the booking ID array
         bookingID.push(newBooking);
@@ -83,8 +84,10 @@ contract HairBookingEscrow {
 
     //once the haircut is complete, the arbiter will confirm it with this function
     function completed(uint256 _bookingID) external {
+        // only the arbiter can mark the haircut as complete 
         require(msg.sender == arbiter, "You are not the arbiter.");
 
+        // initialising the customer's address so can pay them interest 
         address customer = bookingIDToCustomer[_bookingID];
 
         // calculating the amount of interest earned on aave
@@ -110,13 +113,16 @@ contract HairBookingEscrow {
         emit paymentReceived(amountForBarber);
     }
     
+    // tip function for customer's to use after the haircut, or if just feeling generous 
     function tip() external payable {
+        // transferring the tip to the barber's wallet address
         payable(barber).transfer(msg.value);
         emit Tip(msg.value);
     }
 
     // function to cancel the booking
     function cancelBooking(uint256 _bookingID) public {
+        // only the customer who made the booking, or the barber, may cancel the booking 
         require(
             bookingIDToCustomer[_bookingID] == msg.sender ||
                 msg.sender == barber,
@@ -130,12 +136,15 @@ contract HairBookingEscrow {
         // calculating the amount of interest earned on aave
         uint256 totalBalance = aDai.balanceOf(address(this));
 
+        // calculating how much to send the barber (interest earned) 
         uint256 amountForBarber = totalBalance - bookingIDToAmount[_bookingID];
+        // calculating the amount to send to the customer (only their initial deposit) 
         uint256 amountForCustomer = bookingIDToAmount[_bookingID];
 
         //withdrawing the customer's deposit from aave
         pool.withdraw(address(dai), type(uint256).max, address(this));
 
+        // initialising the customer's address
         address customer = bookingIDToCustomer[_bookingID];
         // transferring the customer's initial deposit back to them
         payable(customer).transfer(amountForCustomer);
