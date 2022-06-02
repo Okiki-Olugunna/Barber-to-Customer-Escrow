@@ -10,7 +10,7 @@ contract HairBookingEscrow {
     address public arbiter;
 
     uint256[] bookingID;
-    mapping(uint256 => bool) bookingExists;
+    mapping(uint256 => bool) public bookingExists;
     mapping(uint256 => uint256) bookingIDToAmount;
     mapping(uint256 => address) bookingIDToCustomer;
 
@@ -58,7 +58,7 @@ contract HairBookingEscrow {
         cutomersToNumberOfBookings[msg.sender] += 1;
 
         // initialising the booking ID 
-        uint256 newBooking = bookingID.length + 1;
+        uint256 newBooking = bookingID.length;
         // adding the booking ID to the booking ID array
         bookingID.push(newBooking);
         // adding the booking to the mapping of bookings that exist
