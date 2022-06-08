@@ -1,6 +1,6 @@
 ### How It Works:
-- customer makes a booking in advance 
-- payment is held in an escrow contract, e.g. 50 DAI, until the time of the haircut 
+- the customer makes a booking in advance 
+- the payment is held in an escrow contract, e.g. 50 DAI, until the time of the haircut 
 - during this time, funds are placed in Aave V2 to earn interest 
 
 ##### When the haircut is done:
