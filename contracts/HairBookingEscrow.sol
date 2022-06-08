@@ -12,12 +12,12 @@ contract HairBookingEscrow {
     uint256[] bookingID;
     mapping(uint256 => bool) public bookingExists;
     mapping(uint256 => uint256) bookingIDToAmount;
-    mapping(uint256 => address) bookingIDToCustomer;
+    mapping(uint256 => address) public bookingIDToCustomer;
     // mapping(uint256 => mapping(address => uint256)) bookingIDToCustomerToAmount;
 
     mapping(address => uint256) customerToNumberOfBookings; // can give a discount after X amount of bookings
-    address[] allPreviousCustomers; 
-    
+    address[] allPreviousCustomers;
+
     /* 
     struct Appointment {
         string name; 
@@ -27,11 +27,12 @@ contract HairBookingEscrow {
     }
     
     Appointment[] public appointments;
-    */ 
+    */
 
     // mainnet AAVE V2 lending pool
-    ILendingPool pool = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
-    // aave interest bearing DAI
+    ILendingPool pool =
+        ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
+    // aave interest bearing aDAI
     IERC20 aDai = IERC20(0x028171bCA77440897B824Ca71D1c56caC55b68A3);
     // DAI stablecoin
     IERC20 dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
@@ -56,7 +57,7 @@ contract HairBookingEscrow {
         // adding 1 to the total number of bookings this customer has made
         customerToNumberOfBookings[msg.sender] += 1;
 
-        // initialising the booking ID 
+        // initialising the booking ID
         uint256 newBooking = bookingID.length;
         // adding the booking ID to the booking ID array
         bookingID.push(newBooking);
@@ -84,10 +85,10 @@ contract HairBookingEscrow {
 
     // once the haircut is complete, the arbiter will confirm it with this function
     function completed(uint256 _bookingID) external {
-        // only the arbiter can mark the haircut as complete 
+        // only the arbiter can mark the haircut as complete
         require(msg.sender == arbiter, "You are not the arbiter.");
 
-        // initialising the customer's address so can pay them interest 
+        // initialising the customer's address so can pay them interest
         address customer = bookingIDToCustomer[_bookingID];
 
         // calculating the amount of interest earned on aave
@@ -112,8 +113,8 @@ contract HairBookingEscrow {
         payable(barber).transfer(amountForBarber);
         emit paymentReceived(amountForBarber);
     }
-    
-    // tip function for customer's to use after the haircut, or if just feeling generous 
+
+    // tip function for customer's to use after the haircut, or if just feeling generous
     function tip() external payable {
         // transferring the tip to the barber's wallet address
         payable(barber).transfer(msg.value);
@@ -122,7 +123,7 @@ contract HairBookingEscrow {
 
     // function to cancel the booking
     function cancelBooking(uint256 _bookingID) public {
-        // only the customer who made the booking, or the barber, may cancel the booking 
+        // only the customer who made the booking, or the barber, may cancel the booking
         require(
             bookingIDToCustomer[_bookingID] == msg.sender ||
                 msg.sender == barber,
@@ -136,9 +137,9 @@ contract HairBookingEscrow {
         // calculating the amount of interest earned on aave
         uint256 totalBalance = aDai.balanceOf(address(this));
 
-        // calculating how much to send the barber (interest earned) 
+        // calculating how much to send the barber (interest earned)
         uint256 amountForBarber = totalBalance - bookingIDToAmount[_bookingID];
-        // calculating the amount to send to the customer (only their initial deposit) 
+        // calculating the amount to send to the customer (only their initial deposit)
         uint256 amountForCustomer = bookingIDToAmount[_bookingID];
 
         //withdrawing the customer's deposit from aave
