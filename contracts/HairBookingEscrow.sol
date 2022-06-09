@@ -6,6 +6,14 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/ILendingPool.sol";
 
 contract HairBookingEscrow {
+
+    // mainnet AAVE V2 lending pool
+    ILendingPool pool = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
+    // aave interest bearing aDAI
+    IERC20 aDai = IERC20(0x028171bCA77440897B824Ca71D1c56caC55b68A3);
+    // DAI stablecoin
+    IERC20 dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+
     address public barber;
     address public arbiter;
 
@@ -28,14 +36,6 @@ contract HairBookingEscrow {
     
     Appointment[] public appointments;
     */
-
-    // mainnet AAVE V2 lending pool
-    ILendingPool pool =
-        ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
-    // aave interest bearing aDAI
-    IERC20 aDai = IERC20(0x028171bCA77440897B824Ca71D1c56caC55b68A3);
-    // DAI stablecoin
-    IERC20 dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
     event bookingMade(
         uint256 bookingID,
