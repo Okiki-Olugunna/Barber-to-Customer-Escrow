@@ -29,7 +29,7 @@ contract HairBookingEscrow {
     /* 
     struct Appointment {
         string name; 
-        address walletAddress; 
+        address customerAddress; 
         uint256 amountPaid; 
         uint256 bookingID;
     }
