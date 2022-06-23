@@ -186,7 +186,7 @@ contract HairBookingEscrow {
         uint256 totalBalance = aDai.balanceOf(address(this));
 
         // calculating how much to send the barber (interest earned)
-        uint256 amountForBarber = totalBalance - bookingIDToAmount[_bookingID];
+        uint256 amountForBarber = totalBalance;
         // calculating the amount to send to the customer (only their initial deposit)
         uint256 amountForCustomer = bookingIDToAmount[_bookingID];
 
