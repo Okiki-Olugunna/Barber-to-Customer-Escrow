@@ -144,12 +144,11 @@ contract HairBookingEscrow {
         uint256 totalBalance = aDai.balanceOf(address(this));
 
         // calculation: giving the barber the intital deposit and 50% of the extra interest
-        uint256 amountForBarber = bookingIDToAmount[_bookingID] +
-            ((totalBalance - bookingIDToAmount[_bookingID]) / 2);
+        uint256 amountForBarber = bookingIDToAmount[_bookingID] + // initial deposit
+            (totalBalance / 2); // 50% of interest earned
 
         // calculation: giving the customer the other 50% of the extra interest
-        uint256 interestForCustomer = (totalBalance -
-            bookingIDToAmount[_bookingID]) / 2;
+        uint256 interestForCustomer = totalBalance / 2;
 
         // withdrawing the initial deposit + the interest from aave
         POOL.withdraw(address(DAI), type(uint256).max, address(this));
