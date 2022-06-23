@@ -6,9 +6,9 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/ILendingPool.sol";
 
 contract HairBookingEscrow {
-
     // mainnet AAVE V2 lending pool
-    ILendingPool pool = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
+    ILendingPool pool =
+        ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
     // aave interest bearing aDAI
     IERC20 aDai = IERC20(0x028171bCA77440897B824Ca71D1c56caC55b68A3);
     // DAI stablecoin
@@ -26,16 +26,17 @@ contract HairBookingEscrow {
     mapping(address => uint256) customerToNumberOfBookings; // can give a discount after X amount of bookings
     address[] allPreviousCustomers;
 
-    /* 
+    // address to bookingID to appointment details
+    mapping(address => mapping(uint256 => Appointment)) bookingDetails;
+
     struct Appointment {
-        string name; 
-        address customerAddress; 
-        uint256 amountPaid; 
+        string name;
+        address customerAddress;
+        uint256 amountPaid;
         uint256 bookingID;
+        uint256 startTime;
+        uint256 endTime;
     }
-    
-    Appointment[] public appointments;
-    */
 
     event bookingMade(
         uint256 bookingID,
@@ -53,12 +54,35 @@ contract HairBookingEscrow {
         arbiter = _arbiter;
     }
 
-    function bookHairCut(uint256 _bookingAmount) external {
+    // function to view the 2 haircut types available - fade & level cut
+    function viewHairCutPrices(uint256 _hairCutType)
+        public
+        pure
+        returns (string memory _price)
+    {
+        if (_hairCutType == 1) return "Fade: 30 DAI";
+        if (_hairCutType == 2) return "Level Cut: 20 DAI";
+    }
+
+    // function to book the haircut
+    function bookHairCut(
+        string memory _name,
+        uint256 _bookingAmount,
+        uint256 _startTime,
+        uint256 _endTime
+    ) external returns (uint256 newBooking) {
+        //transferring the booking amount of dai to this contract
+        dai.transferFrom(msg.sender, address(this), _bookingAmount);
+
+        // depositing the dai into aave
+        dai.approve(address(pool), _bookingAmount);
+        pool.deposit(address(dai), _bookingAmount, address(this), 0);
+
         // adding 1 to the total number of bookings this customer has made
         customerToNumberOfBookings[msg.sender] += 1;
 
         // initialising the booking ID
-        uint256 newBooking = bookingID.length;
+        newBooking = bookingID.length;
         // adding the booking ID to the booking ID array
         bookingID.push(newBooking);
         // adding the booking to the mapping of bookings that exist
@@ -68,12 +92,16 @@ contract HairBookingEscrow {
         // tying this bookingID to the customer
         bookingIDToCustomer[newBooking] = msg.sender;
 
-        //transferring the booking amount of dai to this contract
-        dai.transferFrom(msg.sender, address(this), _bookingAmount);
+        Appointment memory appointment;
 
-        // depositing the dai into aave
-        dai.approve(address(pool), _bookingAmount);
-        pool.deposit(address(dai), _bookingAmount, address(this), 0);
+        appointment.name = _name;
+        appointment.amountPaid = _bookingAmount;
+        appointment.customerAddress = msg.sender;
+        appointment.bookingID = newBooking;
+        appointment.startTime = _startTime;
+        appointment.endTime = _endTime;
+
+        bookingDetails[msg.sender][newBooking] = appointment;
 
         emit bookingMade(
             newBooking,
@@ -81,6 +109,23 @@ contract HairBookingEscrow {
             _bookingAmount,
             customerToNumberOfBookings[msg.sender]
         );
+
+        return newBooking; // returns the bookingID
+    }
+
+    // view the details of your booking by passing in your booking ID
+    function viewBookingDetails(uint256 _bookingID)
+        external
+        view
+        returns (Appointment memory)
+    {
+        require(
+            bookingIDToCustomer[_bookingID] == msg.sender ||
+                msg.sender == barber,
+            "You are not permitted to view the details of this booking."
+        );
+
+        return bookingDetails[msg.sender][_bookingID]; // returns the Appointment struct
     }
 
     // once the haircut is complete, the arbiter will confirm it with this function
@@ -114,7 +159,7 @@ contract HairBookingEscrow {
         emit paymentReceived(amountForBarber);
     }
 
-    // tip function for customer's to use after the haircut, or if just feeling generous
+    // tip function for customers to use after the haircut, or if just feeling generous
     function tip() external payable {
         // transferring the tip to the barber's wallet address
         payable(barber).transfer(msg.value);
