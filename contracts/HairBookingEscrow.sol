@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.12;
 
@@ -7,26 +7,26 @@ import "../interfaces/ILendingPool.sol";
 
 contract HairBookingEscrow {
     // mainnet AAVE V2 lending pool
-    ILendingPool pool =
+    ILendingPool public constant POOL =
         ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
     // aave interest bearing aDAI
-    IERC20 aDai = IERC20(0x028171bCA77440897B824Ca71D1c56caC55b68A3);
+    IERC20 public constant aDai =
+        IERC20(0x028171bCA77440897B824Ca71D1c56caC55b68A3);
     // DAI stablecoin
-    IERC20 dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    IERC20 public constant DAI =
+        IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
     address public barber;
     address public arbiter;
 
     uint256[] bookingID;
-    mapping(uint256 => bool) public bookingExists;
-    mapping(uint256 => uint256) bookingIDToAmount;
-    mapping(uint256 => address) public bookingIDToCustomer;
-    // mapping(uint256 => mapping(address => uint256)) bookingIDToCustomerToAmount;
-
-    mapping(address => uint256) customerToNumberOfBookings; // can give a discount after X amount of bookings
     address[] allPreviousCustomers;
+    mapping(uint256 => bool) public bookingExists;
+    mapping(uint256 => uint256) public bookingIDToAmount;
+    mapping(uint256 => address) public bookingIDToCustomer;
+    mapping(address => uint256) customerToNumberOfBookings; // can give a discount after X amount of bookings
 
-    // address to bookingID to appointment details
+    // mapping the customer's address to the bookingID to the appointment details
     mapping(address => mapping(uint256 => Appointment)) bookingDetails;
 
     struct Appointment {
@@ -42,7 +42,9 @@ contract HairBookingEscrow {
         uint256 bookingID,
         address indexed customer,
         uint256 bookingAmount,
-        uint256 bookingNumber
+        uint256 bookingNumber,
+        uint256 timeOfAppointment,
+        uint256 endOfAppointment
     );
     event bookingCancelled(address indexed canceller, uint256 bookingID);
     event paymentReceived(uint256);
@@ -72,11 +74,11 @@ contract HairBookingEscrow {
         uint256 _endTime
     ) external returns (uint256 newBooking) {
         //transferring the booking amount of dai to this contract
-        dai.transferFrom(msg.sender, address(this), _bookingAmount);
+        DAI.transferFrom(msg.sender, address(this), _bookingAmount);
 
         // depositing the dai into aave
-        dai.approve(address(pool), _bookingAmount);
-        pool.deposit(address(dai), _bookingAmount, address(this), 0);
+        DAI.approve(address(POOL), _bookingAmount);
+        POOL.deposit(address(DAI), _bookingAmount, address(this), 0);
 
         // adding 1 to the total number of bookings this customer has made
         customerToNumberOfBookings[msg.sender] += 1;
@@ -107,7 +109,9 @@ contract HairBookingEscrow {
             newBooking,
             msg.sender,
             _bookingAmount,
-            customerToNumberOfBookings[msg.sender]
+            customerToNumberOfBookings[msg.sender],
+            _startTime,
+            _endTime
         );
 
         return newBooking; // returns the bookingID
@@ -148,7 +152,7 @@ contract HairBookingEscrow {
             bookingIDToAmount[_bookingID]) / 2;
 
         // withdrawing the initial deposit + the interest from aave
-        pool.withdraw(address(dai), type(uint256).max, address(this));
+        POOL.withdraw(address(DAI), type(uint256).max, address(this));
 
         // tranferring interest to the customer
         payable(customer).transfer(interestForCustomer);
@@ -188,7 +192,7 @@ contract HairBookingEscrow {
         uint256 amountForCustomer = bookingIDToAmount[_bookingID];
 
         //withdrawing the customer's deposit from aave
-        pool.withdraw(address(dai), type(uint256).max, address(this));
+        POOL.withdraw(address(DAI), type(uint256).max, address(this));
 
         // initialising the customer's address
         address customer = bookingIDToCustomer[_bookingID];
