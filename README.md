@@ -16,6 +16,6 @@
 ##### The earlier the customer makes the booking, the more interest they can get
 
 
-##### If a customer cancels the booking: 
+#### If a customer cancels the booking: 
 - the barber gets the interest earned (another incentive to use this dapp) 
 - the customer only gets back their deposit 
