@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import {ILendingPoolAddressesProvider} from "../interfaces/ILendingPoolAddressesProvider.sol";
 //import {DataTypes} from "../protocol/libraries/types/DataTypes.sol";
-import "../contracts/DataTypes.sol";
+import "../contracts/libraries/DataTypes.sol";
 
 interface ILendingPool {
     /**
