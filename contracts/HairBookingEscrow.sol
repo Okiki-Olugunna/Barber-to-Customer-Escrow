@@ -24,11 +24,12 @@ contract HairBookingEscrow {
     mapping(uint256 => bool) public bookingExists;
     mapping(uint256 => uint256) public bookingIDToAmount;
     mapping(uint256 => address) public bookingIDToCustomer;
-    mapping(address => uint256) customerToNumberOfBookings; // can give a discount after X amount of bookings
+    mapping(address => uint256) public customerToNumberOfBookings; // can give a discount after X amount of bookings
 
     // mapping the customer's address to the bookingID to the appointment details
     mapping(address => mapping(uint256 => Appointment)) bookingDetails;
 
+    // storing the appointment details 
     struct Appointment {
         string name;
         address customerAddress;
@@ -38,6 +39,7 @@ contract HairBookingEscrow {
         uint256 endTime;
     }
 
+    // event for when a booking is made 
     event bookingMade(
         uint256 bookingID,
         address indexed customer,
@@ -46,11 +48,16 @@ contract HairBookingEscrow {
         uint256 timeOfAppointment,
         uint256 endOfAppointment
     );
+    // event for when a customer cancels a booking 
     event bookingCancelled(address indexed canceller, uint256 bookingID);
+    // event for when the barber gets paid the deposit + interest - emitted on completion of the haircut 
     event paymentReceived(uint256);
+    // event for when the customer gets paid their interest - emitted on completion of the haircut 
     event paidInterestToCustomer(uint256);
+    // event for when a customer tips the barber 
     event Tip(uint256 amount, address indexed tipper);
 
+    // initialising the barber and the arbiter 
     constructor(address _barber, address _arbiter) {
         barber = _barber;
         arbiter = _arbiter;
