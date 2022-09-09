@@ -1,5 +1,5 @@
-### What this is:
-- A smart contract based booking platform for hairdressers & barbers
+## Barber-to-Customer Escrow
+A smart contract based booking platform for hairdressers & barbers
 
 #### How It Works:
 - the customer makes a booking in advance 
