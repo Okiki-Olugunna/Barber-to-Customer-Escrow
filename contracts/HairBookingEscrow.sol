@@ -2,34 +2,48 @@
 
 pragma solidity 0.8.12;
 
-import "../interfaces/IERC20.sol";
-import "../interfaces/ILendingPool.sol";
+import "../../interfaces/IERC20.sol";
+import "../../interfaces/ILendingPool.sol";
 
 contract HairBookingEscrow {
-    // mainnet AAVE V2 lending pool
+    // mumbai AAVE V2 lending pool
     ILendingPool public constant POOL =
-        ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
-    // aave interest bearing aDAI
+        ILendingPool(0x9198F13B08E299d85E096929fA9781A1E3d5d827);
+    // aave interest bearing aDAI on mumbai
     IERC20 public constant aDai =
-        IERC20(0x028171bCA77440897B824Ca71D1c56caC55b68A3);
-    // DAI stablecoin
+        IERC20(0x639cB7b21ee2161DF9c882483C9D55c90c20Ca3e);
+    // DAI stablecoin on mumbai
     IERC20 public constant DAI =
-        IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+        IERC20(0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F);
 
+    // address of the barber
     address public barber;
+    // address of the arbiter
     address public arbiter;
 
+    // price of a fade
+    uint256 public Fade = 30 * (10**18);
+    // price of a level cut
+    uint256 public LevelCut = 20 * (10**18);
+
+    // array of all booking IDs
     uint256[] bookingID;
+    // array of the addresses of all previous customers
     address[] allPreviousCustomers;
+
+    // mapping to store whether a booking still exists & has not been cancelled
     mapping(uint256 => bool) public bookingExists;
+    // mapping to store how much was paid for a booking
     mapping(uint256 => uint256) public bookingIDToAmount;
+    // mapping to store the wallet address of a booking ID
     mapping(uint256 => address) public bookingIDToCustomer;
+    // mapping to store the number of bookings this customer/address has made
     mapping(address => uint256) public customerToNumberOfBookings; // can give a discount after X amount of bookings
 
     // mapping the customer's address to the bookingID to the appointment details
     mapping(address => mapping(uint256 => Appointment)) bookingDetails;
 
-    // storing the appointment details 
+    // storing the appointment details
     struct Appointment {
         string name;
         address customerAddress;
@@ -39,7 +53,7 @@ contract HairBookingEscrow {
         uint256 endTime;
     }
 
-    // event for when a booking is made 
+    // event for when a booking is made
     event bookingMade(
         uint256 bookingID,
         address indexed customer,
@@ -48,16 +62,16 @@ contract HairBookingEscrow {
         uint256 timeOfAppointment,
         uint256 endOfAppointment
     );
-    // event for when a customer cancels a booking 
+    // event for when a customer cancels a booking
     event bookingCancelled(address indexed canceller, uint256 bookingID);
-    // event for when the barber gets paid the deposit + interest - emitted on completion of the haircut 
+    // event for when the barber gets paid the deposit + interest - emitted on completion of the haircut
     event paymentReceived(uint256);
-    // event for when the customer gets paid their interest - emitted on completion of the haircut 
+    // event for when the customer gets paid their interest - emitted on completion of the haircut
     event paidInterestToCustomer(uint256);
-    // event for when a customer tips the barber 
+    // event for when a customer tips the barber
     event Tip(uint256 amount, address indexed tipper);
 
-    // initialising the barber and the arbiter 
+    // initialising the barber and the arbiter
     constructor(address _barber, address _arbiter) {
         barber = _barber;
         arbiter = _arbiter;
@@ -92,6 +106,7 @@ contract HairBookingEscrow {
 
         // initialising the booking ID
         newBooking = bookingID.length;
+
         // adding the booking ID to the booking ID array
         bookingID.push(newBooking);
         // adding the booking to the mapping of bookings that exist
@@ -101,6 +116,7 @@ contract HairBookingEscrow {
         // tying this bookingID to the customer
         bookingIDToCustomer[newBooking] = msg.sender;
 
+        // initialising the appointment
         Appointment memory appointment;
 
         appointment.name = _name;
@@ -110,8 +126,10 @@ contract HairBookingEscrow {
         appointment.startTime = _startTime;
         appointment.endTime = _endTime;
 
+        // tying the appintment details to the bookingID and address of customer
         bookingDetails[msg.sender][newBooking] = appointment;
 
+        // emitting event that a booking has been made
         emit bookingMade(
             newBooking,
             msg.sender,
@@ -121,22 +139,25 @@ contract HairBookingEscrow {
             _endTime
         );
 
-        return newBooking; // returns the bookingID
+        // returns the bookingID back to the customer
+        return newBooking;
     }
 
-    // view the details of your booking by passing in your booking ID
+    // function to view the details of your booking by passing in your booking ID
     function viewBookingDetails(uint256 _bookingID)
         external
         view
         returns (Appointment memory)
     {
+        // only the customer who booked, or the barber, may call this function
         require(
             bookingIDToCustomer[_bookingID] == msg.sender ||
                 msg.sender == barber,
             "You are not permitted to view the details of this booking."
         );
 
-        return bookingDetails[msg.sender][_bookingID]; // returns the Appointment struct
+        // returns the Appointment struct
+        return bookingDetails[msg.sender][_bookingID];
     }
 
     // once the haircut is complete, the arbiter will confirm it with this function
@@ -173,6 +194,7 @@ contract HairBookingEscrow {
     function tip() external payable {
         // transferring the tip to the barber's wallet address
         payable(barber).transfer(msg.value);
+        // emitting event that someone has tipped the barber
         emit Tip(msg.value, msg.sender);
     }
 
@@ -208,6 +230,7 @@ contract HairBookingEscrow {
         // transferring the interest earned back to the barber
         payable(barber).transfer(amountForBarber);
 
+        // emitting event that the booking has been cancelled
         emit bookingCancelled(msg.sender, _bookingID);
     }
 }
