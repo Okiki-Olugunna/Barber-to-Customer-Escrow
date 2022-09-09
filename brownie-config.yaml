@@ -1,0 +1,22 @@
+dotenv: .env
+
+networks: 
+  default: mumbai-alchemy
+  
+provider:
+  websockets: ${WEBSOCKETS_KEY}
+  http: ${ALCHEMY_GOERLI_NODE_PROVIDER}
+
+wallets:
+  from_key: 
+    main: ${MAIN_KEY}
+    dev_2: ${DEV_2_KEY}
+    dev_3: ${DEV_3_KEY}
+    dev_4: ${DEV_4_KEY}
+
+addresses:
+  main_address: ${MAIN_ADDRESS}
+  dev_2_address: ${DEV_2_ADDRESS}
+  dev_3_address: ${DEV_3_ADDRESS}
+  dev_4_address: ${DEV_4_ADDRESS}
+  
