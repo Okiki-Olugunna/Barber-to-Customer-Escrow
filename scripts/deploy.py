@@ -3,8 +3,8 @@ import json
 
 
 def main():
-    barber = accounts.add(config["wallets"]["from_key"]["main"])
-    barber_address = config["addresses"]["main_address"]
+    barber = accounts.add(config["wallets"]["from_key"]["dev_4"])
+    barber_address = config["addresses"]["dev_4_address"]
 
     arbiter = accounts.add(config["wallets"]["from_key"]["dev_2"])
     arbiter_address = config["addresses"]["dev_2_address"]
