@@ -345,4 +345,28 @@ contract HairBookingEscrow {
         // emitting event that the booking has been cancelled
         emit bookingCancelled(msg.sender, _bookingID);
     }
+    
+    // function to change the price of a fade - only the barber
+    function changeFadePrice(uint256 _newPrice) external onlyBarber {
+        FadePrice = _newPrice;
+    }
+
+    // function to change the price of a level cut - only the barber
+    function changeLevelCutPrice(uint256 _newPrice) external onlyBarber {
+        LevelCutPrice = _newPrice;
+    }
+
+    // function to change the address of the barber - only the barber
+    function changeBarberAddress(address _newAddress) external onlyBarber {
+        barber = _newAddress;
+    }
+
+    // function to change the address of the arbiter - only the barber or arbiter
+    function changeArbiterAddress(address _newAddress) external {
+        require(
+            msg.sender == barber || arbiter == msg.sender,
+            "You are not permitted to call this."
+        );
+        arbiter = _newAddress;
+    }
 }
