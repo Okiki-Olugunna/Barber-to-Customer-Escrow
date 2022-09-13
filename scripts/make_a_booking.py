@@ -23,10 +23,18 @@ a_dai_token = w3.eth.contract(
     address="0x639cB7b21ee2161DF9c882483C9D55c90c20Ca3e", abi=a_dai_abi
 )
 
+# initialising regular DAI erc20 token
+with open("./contract_data/erc20_abi.json") as file_d:
+    erc20_abi = file_d.read()
+
+dai_erc20_token = w3.eth.contract(  # aDai
+    address="0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F", abi=erc20_abi
+)
+
 
 # main script
 def main():
-    print("---------------------------------------------\n")
+    print("\n--------------------------------------------- \n")
     print("STARTING THE MAKE_A_BOOKING.PY SCRIPT\n")
     print("---------------------------------------------\n")
 
@@ -82,7 +90,9 @@ def main():
     print("Customer is fine with the price and is now proceeding to book...\n")
 
     # check customer balance before booking
-    customer_dai_balance = a_dai_token.functions.balanceOf(customer_1_address).call()
+    customer_dai_balance = dai_erc20_token.functions.balanceOf(
+        customer_1_address
+    ).call()
     converted_customer_balance = w3.fromWei(customer_dai_balance, "ether")
     print(f"The customer's current DAI balance is: {converted_customer_balance} DAI \n")
 
@@ -120,12 +130,14 @@ def main():
     print(f"The contract's current aDai balance is: {converted_balance} aDAI \n")
 
     # check barber balance before completion of haircut
-    barber_dai_balance = a_dai_token.functions.balanceOf(barber_address).call()
+    barber_dai_balance = dai_erc20_token.functions.balanceOf(barber_address).call()
     converted_barber_balance = w3.fromWei(barber_dai_balance, "ether")
     print(f"The barber's current DAI balance is: {converted_barber_balance} DAI \n")
 
     # check customer balance before completion of haircut
-    customer_dai_balance = a_dai_token.functions.balanceOf(customer_1_address).call()
+    customer_dai_balance = dai_erc20_token.functions.balanceOf(
+        customer_1_address
+    ).call()
     converted_customer_balance = w3.fromWei(customer_dai_balance, "ether")
     print(f"The customer's new DAI balance is: {converted_customer_balance} DAI \n")
 
@@ -157,7 +169,7 @@ def main():
     print("The arbiter has marked the haircut as complete. \n")
 
     # check barber's new balance - barber's balance should go up
-    barber_new_dai_balance = a_dai_token.functions.balanceOf(barber_address).call()
+    barber_new_dai_balance = dai_erc20_token.functions.balanceOf(barber_address).call()
     converted_barber_balance = w3.fromWei(barber_new_dai_balance, "ether")
     print(
         f"The barber's new DAI balance after the haircut is: {converted_barber_balance} DAI "
@@ -167,7 +179,7 @@ def main():
         print("This is higher than before the haircut as expected.\n")
 
     # check customer's new balance - balance should go up
-    customer_new_dai_balance = a_dai_token.functions.balanceOf(
+    customer_new_dai_balance = dai_erc20_token.functions.balanceOf(
         customer_1_address
     ).call()
     converted_customer_balance = w3.fromWei(customer_new_dai_balance, "ether")
