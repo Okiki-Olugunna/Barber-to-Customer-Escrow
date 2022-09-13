@@ -15,11 +15,11 @@ with open("./contract_data/abi.json") as file_b:
 contract_instance = w3.eth.contract(address=contract_address, abi=contract_abi)
 
 
-# initialising erc20 token
+# initialising erc20 dai token
 with open("./contract_data/erc20_abi.json") as file_c:
     erc20_abi = file_c.read()
 
-dai_erc20_token = w3.eth.contract(  # aDai
+dai_erc20_token = w3.eth.contract( 
     address="0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F", abi=erc20_abi
 )
 
@@ -31,8 +31,8 @@ def main():
 
     # initialising the accounts
     print("Initialising the accoounts...\n")
-    barber = config["wallets"]["from_key"]["dev_4"]
-    barber_address = config["addresses"]["dev_4_address"]
+    barber = config["wallets"]["from_key"]["main"] 
+    barber_address = config["addresses"]["main_address"] 
 
     customer_1 = config["wallets"]["from_key"]["dev_2"]
     customer_1_address = config["addresses"]["dev_2_address"]
