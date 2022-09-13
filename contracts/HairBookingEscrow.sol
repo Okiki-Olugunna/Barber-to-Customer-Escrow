@@ -298,6 +298,32 @@ contract HairBookingEscrow {
         // emitting event that the payment + interest has been sent to the barber
         emit paymentReceived(amountForBarber);
     }
+    
+    // if the haircut was done to a bad standard, the arbiter will call this function
+    function notUpToStandard(uint256 _bookingID) external {
+        require(
+            msg.sender == arbiter,
+            "You are not permitted to call this function."
+        );
+
+        // initialising the customer's address so can pay them
+        address customer = bookingIDToCustomer[_bookingID];
+
+        // calculating the amount of interest earned on aave
+        uint256 totalBalance = aDai.balanceOf(address(this));
+
+        // calculation to give the customer their money back + interest
+        uint256 interestForCustomer = totalBalance;
+
+        // withdrawing the initial deposit + the interest from aave
+        POOL.withdraw(address(DAI), type(uint256).max, address(this));
+
+        // tranferring interest to the customer
+        DAI.transfer(customer, interestForCustomer);
+
+        // emitting event that the interest has been paid to customer
+        emit paidInterestToCustomer(interestForCustomer);
+    }    
 
     // tip function for customers to use after the haircut, or if just feeling generous
     function tip(uint256 _amount) external {
