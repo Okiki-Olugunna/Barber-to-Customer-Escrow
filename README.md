@@ -12,6 +12,8 @@ A smart contract based booking platform for hairdressers & barbers
 - the customer gets some of the accrued interest 
 - the barber gets their payment & some of the accrued interest as well (as an incentive to use this dapp) 
 
+To see a simulation of this, view [this script](https://github.com/Okiki-Olugunna/Barber-to-Customer-Escrow/blob/main/scripts/make_a_booking.py) 
+
 
 ##### The earlier the customer makes the booking, the more interest they can get
 
