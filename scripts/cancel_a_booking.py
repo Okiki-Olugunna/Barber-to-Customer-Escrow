@@ -124,6 +124,18 @@ def main():
     converted_balance = w3.fromWei(a_dai_token_balance, "ether")
     print(f"The contract's current aDai balance is: {converted_balance} aDAI \n")
 
+    # check barber balance before haircut
+    barber_dai_balance = dai_erc20_token.functions.balanceOf(barber_address).call()
+    converted_barber_balance = w3.fromWei(barber_dai_balance, "ether")
+    print(f"The barber's current DAI balance is: {converted_barber_balance} DAI \n")
+
+    # check customer balance before haircut
+    customer_dai_balance = dai_erc20_token.functions.balanceOf(
+        customer_1_address
+    ).call()
+    converted_customer_balance = w3.fromWei(customer_dai_balance, "ether")
+    print(f"The customer's new DAI balance is: {converted_customer_balance} DAI \n")
+
     # customer has realised they are in fact bald-headed, so no longer requires a haircut
     print(
         "Customer has realised he is bald-headed, so is proceeding to cancel the haircut... \n"
@@ -153,6 +165,36 @@ def main():
     print("--------------------------------------------\n")
 
     print(f"Customer 1 ({customer_1_address}) has now cancelled the booking! \n")
+
+    # checking whether the booking still exists
+    booking_exists = contract_instance.functions.bookingExists(1).call()
+    print(f"Booking Exists? : {booking_exists}")
+
+    # check barber's new balance - barber's balance should go up since they're getting some interest
+    barber_new_dai_balance = dai_erc20_token.functions.balanceOf(barber_address).call()
+    converted_barber_balance = w3.fromWei(barber_new_dai_balance, "ether")
+    print(f"The barber's new DAI balance is: {converted_barber_balance} DAI ")
+    # sanity check
+    if barber_new_dai_balance > barber_dai_balance:
+        print("This is higher than before the booked haircut, as expected.\n")
+
+    # check customer's new balance - balance should go up - since they're getting refunded
+    customer_new_dai_balance = dai_erc20_token.functions.balanceOf(
+        customer_1_address
+    ).call()
+    converted_customer_balance = w3.fromWei(customer_new_dai_balance, "ether")
+    print(f"The customer's new DAI is: {converted_customer_balance} DAI ")
+    # sanity check
+    if customer_new_dai_balance > customer_dai_balance:
+        print("This is higher than after initially booking the haircut, as expected.\n")
+
+    # check the contract's new balance on Aave - should have gone down
+    new_a_dai_token_balance = a_dai_token.functions.balanceOf(contract_address).call()
+    converted_balance = w3.fromWei(new_a_dai_token_balance, "ether")
+    print(f"The contract's new aDai balance is: {converted_balance} aDAI \n")
+    # sanity check
+    if new_a_dai_token_balance < a_dai_token_balance:
+        print("This is lower than when the haircut was booked, as expected.\n")
 
     print("\n--------------------------------------------- \n")
     print("CANCEL_A_BOOKING.PY SCRIPT IS NOW COMPLETE \n")
