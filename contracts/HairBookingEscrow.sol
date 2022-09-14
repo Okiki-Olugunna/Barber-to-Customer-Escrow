@@ -11,7 +11,6 @@ import "../interfaces/ILendingPool.sol";
  * @notice This contract facilitates the booking process for a
  * haircut between a customer and a barber, while making sure that
  * the barber executed the haircut to a good standard.
- * @notice
  * @dev This contract is intended for the polygon mumbai testnet.
  */
 contract HairBookingEscrow {
