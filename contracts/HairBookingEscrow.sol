@@ -33,10 +33,7 @@ contract HairBookingEscrow {
      */
     IERC20 public constant DAI =
         IERC20(0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F);
-
-    // DAI stablecoin from quickswap
-    // IERC20 public constant DAI_QuickSwap = IERC20(0xcB1e72786A6eb3b44C2a2429e317c8a2462CFeb1);
-
+        
     /**
      * @notice This is the MATIC token contract address on mumbai
      */
