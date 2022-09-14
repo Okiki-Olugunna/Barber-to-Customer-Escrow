@@ -24,7 +24,6 @@ contract HairBookingEscrow {
      * @notice This is the contract address of the Aave interest bearing aDAI token on mumbai
      * @dev This is where the extra interest to give the customer and barber comes from
      */
-    //
     IERC20 public constant aDai =
         IERC20(0x639cB7b21ee2161DF9c882483C9D55c90c20Ca3e);
 
@@ -58,7 +57,6 @@ contract HairBookingEscrow {
      * Keeping it cheap for testnet purposes.
      * Would be 20 * (10**18) on mainnet
      */
-
     uint256 public LevelCutPrice = 2;
 
     /// @notice This is an array to store all of the booking IDs
