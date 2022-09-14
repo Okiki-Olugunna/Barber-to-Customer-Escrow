@@ -5,87 +5,134 @@ pragma solidity 0.8.12;
 import "../interfaces/IERC20.sol";
 import "../interfaces/ILendingPool.sol";
 
+/**
+ * @title Barber-to-Customer Escrow
+ * @author Okiki Olugunna
+ * @notice This contract facilitates the booking process for a
+ * haircut between a customer and a barber, while making sure that
+ * the barber executed the haircut to a good standard.
+ * @notice
+ * @dev This contract is intended for the polygon mumbai testnet.
+ */
 contract HairBookingEscrow {
-    // AAVE V2 lending pool on mumbai
+    /**
+     * @notice This is the contract address of the AAVE V2 lending pool on mumbai
+     */
     ILendingPool public constant POOL =
         ILendingPool(0x9198F13B08E299d85E096929fA9781A1E3d5d827);
 
-    // aave interest bearing aDAI on mumbai
+    /**
+     * @notice This is the contract address of the Aave interest bearing aDAI token on mumbai
+     * @dev This is where the extra interest to give the customer and barber comes from
+     */
+    //
     IERC20 public constant aDai =
         IERC20(0x639cB7b21ee2161DF9c882483C9D55c90c20Ca3e);
 
-    // DAI stablecoin on mumbai
+    /**
+     * @notice This is the regular DAI stablecoin token on mumbai
+     */
     IERC20 public constant DAI =
         IERC20(0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F);
 
-    // MATIC contract address on mumbai
+    // DAI stablecoin from quickswap
+    // IERC20 public constant DAI_QuickSwap = IERC20(0xcB1e72786A6eb3b44C2a2429e317c8a2462CFeb1);
+
+    /**
+     * @notice This is the MATIC token contract address on mumbai
+     */
     IERC20 public constant MATIC =
         IERC20(0x0000000000000000000000000000000000001010);
 
-    // address of the barber
+    /// @notice This is the address of the barber
     address public barber;
 
-    // address of the arbiter
+    /// @notice This is the address of the arbiter
     address public arbiter;
 
-    // price of a fade in DAI
-    // keeping it cheap for testnet purposes
-    // would be 30 * (10**18) on mainnet
+    /**
+     * @notice This is a price of a Fade in DAI.
+     * Keeping it cheap for testnet purposes.
+     * Would be 30 * (10**18) on mainnet
+     */
     uint256 public FadePrice = 3;
 
-    // price of a level cut in DAI
-    // keeping it cheap for testnet purposes
-    // would be 20 * (10**18) on mainnet
+    /**
+     * @notice This is the price of a Level Cut in DAI.
+     * Keeping it cheap for testnet purposes.
+     * Would be 20 * (10**18) on mainnet
+     */
+
     uint256 public LevelCutPrice = 2;
 
-    // array of all booking IDs
+    /// @notice This is an array to store all of the booking IDs
     uint256[] bookingID;
 
-    // array of the addresses of all previous customers
+    /// @notice This is an array to store the addresses of all previous customers
     address[] allPreviousCustomers;
 
-    // mapping to store whether a booking still exists & has not been cancelled
+    /// @notice This mapping stores whether a booking still exists & has not been cancelled
     mapping(uint256 => bool) public bookingExists;
 
-    // mapping to store how much was paid for a booking
+    /// @notice This mapping stores how much was paid for a booking
     mapping(uint256 => uint256) public bookingIDToAmount;
 
-    // mapping to store the wallet address of a booking ID
+    /// @notice This mapping stores the wallet address of a booking ID
     mapping(uint256 => address) public bookingIDToCustomer;
 
-    // mapping to store the number of bookings this customer/address has made
-    mapping(address => uint256) public customerToNumberOfBookings; // can give a discount after X amount of bookings
+    /**
+     * @notice This mapping stores the number of bookings a customer's address has made.
+     * This is to be able to give a discount to certain customers after X amount of bookings
+     */
+    mapping(address => uint256) public customerToNumberOfBookings;
 
-    // mapping the customer's address to the bookingID to the appointment details
-    mapping(address => mapping(uint256 => Appointment)) bookingDetails;
+    /**
+     * @notice This mapping store the customer's address and links it to the bookingID
+     * and the appointment details of that booking ID
+     */
+    mapping(address => mapping(uint256 => Appointment)) public bookingDetails;
 
-    // storing the appointment details
+    /// @notice This struct stores the appointment details
     struct Appointment {
         string name;
         address customerAddress;
-        uint256 hairCutType; //
+        uint256 hairCutType;
         uint256 amountPaid;
         uint256 bookingID;
         uint256 startTime;
         uint256 endTime;
     }
 
-    // the 2 different booking states
+    /// @notice This enum holds the 2 different booking states
     enum BOOKING_STATE {
         CLOSED,
         OPEN
     }
 
-    // the current booking state
+    /// @notice This variable holds the current booking state
     BOOKING_STATE public bookingState;
 
-    // event for when bookings are opened
+    /**
+     * @notice This event is triggered when bookings are opened
+     * @param _timestamp The time that the bookings were opened
+     */
     event bookingsOpened(uint256 _timestamp);
 
-    // event for when bookings are closed
+    /**
+     * @notice This event gets triggered when bookings are closed
+     * @param _timestamp The time that the bookings were closed
+     */
     event bookingsClosed(uint256 _timestamp);
 
-    // event for when a booking is made
+    /**
+     * @notice This event gets triggered when a booking is made
+     * @param bookingID The booking ID of the booking that was made
+     * @param customer The address of the customer that made a booking
+     * @param bookingAmount The amount of DAI that the customer paid
+     * @param bookingNumber The number of bookings that this customer has made
+     * @param timeOfAppointment The starting time of the scheduled appointment
+     * @param endOfAppointment The ending time of the scheduled appointment
+     */
     event bookingMade(
         uint256 bookingID,
         address indexed customer,
@@ -95,20 +142,56 @@ contract HairBookingEscrow {
         uint256 endOfAppointment
     );
 
-    // event for when a customer cancels a booking
+    /**
+     * @notice This event gets triggered when a customer cancels a booking
+     * @param canceller The address that cancelled the booking
+     * @param bookingID The booking ID that was cancelled
+     */
     event bookingCancelled(address indexed canceller, uint256 bookingID);
 
-    // event for when the barber gets paid the deposit + interest - emitted on completion of the haircut
-    event paymentReceived(uint256);
+    /**
+     * @notice This event gets triggered when the barber gets paid the
+     * deposit +  the interest, on completion of the haircut
+     * @param _amount The amount paid to the barber
+     */
+    event paymentReceived(uint256 _amount);
 
-    // event for when the customer gets paid their interest - emitted on completion of the haircut
-    event paidInterestToCustomer(uint256);
+    /**
+     * @notice This event gets triggered when the customer gets paid their
+     * interest, on completion of the haircut
+     * @param _amount The amount paid to the customer
+     */
+    event paidInterestToCustomer(uint256 _amount);
 
-    // event for when a customer tips the barber
+    /**
+     * @notice This event gets triggered when a customer tips the barber
+     * @param amount The amount given in the tip
+     * @param tipper The address of the tipper
+     */
     event Tip(uint256 amount, address indexed tipper);
 
-    // initialising the barber and the arbiter
+    /// @dev Only the barber can call functions marked by this modifier
+    modifier onlyBarber() {
+        require(msg.sender == barber, "You are not the barber.");
+        _;
+    }
+
+    /**
+     * @dev Functions marked by this modifier can only be called if
+     * that booking ID exists
+     */
+    modifier thisBookingExists(uint256 _bookingID) {
+        require(bookingExists[_bookingID], "This booking does not exist.");
+        _;
+    }
+
+    /**
+     * @dev constructor
+     * @param _barber The address of the barber
+     * @param _arbiter The address of the arbiter
+     */
     constructor(address _barber, address _arbiter) {
+        // initialising the barber and the arbiter
         barber = _barber;
         arbiter = _arbiter;
 
@@ -116,8 +199,10 @@ contract HairBookingEscrow {
         bookingState = BOOKING_STATE.CLOSED;
     }
 
-    // function to open up the bookings
-    function openUpBookings() external {
+    /**
+     * @notice This function allows the barber to open up the bookings
+     */
+    function openUpBookings() external onlyBarber {
         // the booking state must first be closed
         require(bookingState == BOOKING_STATE.CLOSED, "Bookings already open.");
 
@@ -128,8 +213,10 @@ contract HairBookingEscrow {
         emit bookingsOpened(block.timestamp);
     }
 
-    // function to close booking availablity
-    function closeBookings() external {
+    /**
+     * @notice This function allows the barber to close booking availablity
+     */
+    function closeBookings() external onlyBarber {
         // the booking state must first be open
         require(bookingState == BOOKING_STATE.OPEN, "Bookings already closed.");
 
@@ -140,9 +227,12 @@ contract HairBookingEscrow {
         emit bookingsClosed(block.timestamp);
     }
 
-    // function to view the 2 haircut types available - fade & level cut
+    /**
+     * @notice This function allows anyone to view the 2 haircut types available
+     * @param _hairCutType The haircut type to view the price of
+     */
     function viewHairCutPrices(uint256 _hairCutType)
-        public
+        external
         pure
         returns (string memory _price)
     {
@@ -150,7 +240,13 @@ contract HairBookingEscrow {
         if (_hairCutType == 2) return "Level Cut: 20 DAI"; // mainnet price
     }
 
-    // function to book the haircut
+    /**
+     * @notice This function executes the booking of a haircut
+     * @param _name The name of the person making the booking
+     * @param _hairCutType The type of haircut the individual wants
+     * @param _startTime The requested start time of the haircut
+     * @param _endTime The requested end time of the haircut
+     */
     function bookHairCut(
         string memory _name,
         uint256 _hairCutType,
@@ -170,7 +266,7 @@ contract HairBookingEscrow {
         );
 
         // initialising the new booking ID - this will be returned at the end of the function
-        newBooking = bookingID.length;
+        newBooking = bookingID.length + 1;
 
         // initialising the appointment
         Appointment memory appointment;
@@ -178,9 +274,20 @@ contract HairBookingEscrow {
         // initialising the boking amount
         uint256 _bookingAmount;
 
+        // initialising the customer's DAI balance
+        uint256 customerDAIBalance = IERC20(DAI).balanceOf(msg.sender);
+
         // if haircut type = 1, then its a fade, transfer X amount of DAI
         if (_hairCutType == 1) {
             _bookingAmount = FadePrice;
+
+            // the balance of the customer must be greater than or equal to the price of the haircut
+            // putting this in place as "buy now, pay later" is starting to come into the scene in defi
+            // do not people going into debt for a haircut
+            require(
+                customerDAIBalance >= _bookingAmount,
+                "Your DAI balance is too low to pay for the haircut."
+            );
 
             // transferring the haircut price amount of dai to this contract
             DAI.transferFrom(msg.sender, address(this), FadePrice);
@@ -198,6 +305,14 @@ contract HairBookingEscrow {
         } else {
             // if haircut type = 2, then its a level cut, transfer X amount of DAI
             _bookingAmount = LevelCutPrice;
+
+            // the balance of the customer must be greater than or equal to the price of the haircut
+            // putting this in place as "buy now, pay later" is starting to come into the scene in defi
+            // do not people going into debt for a haircut
+            require(
+                customerDAIBalance >= _bookingAmount,
+                "Your DAI balance is too low to pay for the haircut."
+            );
 
             // transferring the haircut price amount of dai to this contract
             DAI.transferFrom(msg.sender, address(this), LevelCutPrice);
@@ -250,7 +365,11 @@ contract HairBookingEscrow {
         return newBooking;
     }
 
-    // function to view the details of your booking by passing in your booking ID
+    /**
+     * @notice This function allow the customer or barber to view the details of a specific booking
+     *  by passing in the booking ID
+     * @param _bookingID The booking ID to view the details of
+     */
     function viewBookingDetails(uint256 _bookingID)
         external
         view
@@ -267,10 +386,20 @@ contract HairBookingEscrow {
         return bookingDetails[msg.sender][_bookingID];
     }
 
-    // once the haircut is complete, the arbiter will confirm it with this function
-    function completed(uint256 _bookingID) external {
+    /**
+     * @notice This function allows the arbiter to confirm that the haircut was
+     * done to a good standard
+     * @param _bookingID The booking ID of the appointment that has been completed
+     */
+    function completed(uint256 _bookingID)
+        external
+        thisBookingExists(_bookingID)
+    {
         // only the arbiter can mark the haircut as complete
         require(msg.sender == arbiter, "You are not the arbiter.");
+
+        // updating the booking ID as no longer existing
+        bookingExists[_bookingID] = false;
 
         // initialising the customer's address so can pay them the interest
         address customer = bookingIDToCustomer[_bookingID];
@@ -298,13 +427,23 @@ contract HairBookingEscrow {
         // emitting event that the payment + interest has been sent to the barber
         emit paymentReceived(amountForBarber);
     }
-    
-    // if the haircut was done to a bad standard, the arbiter will call this function
-    function notUpToStandard(uint256 _bookingID) external {
+
+    /**
+     * @notice This function allows the arbiter to confirm that the haircut was
+     * done to a bad standard
+     * @param _bookingID The booking ID of the appointment
+     */
+    function notUpToStandard(uint256 _bookingID)
+        external
+        thisBookingExists(_bookingID)
+    {
         require(
             msg.sender == arbiter,
             "You are not permitted to call this function."
         );
+
+        // updating the booking ID as no longer existing
+        bookingExists[_bookingID] = false;
 
         // initialising the customer's address so can pay them
         address customer = bookingIDToCustomer[_bookingID];
@@ -323,9 +462,12 @@ contract HairBookingEscrow {
 
         // emitting event that the interest has been paid to customer
         emit paidInterestToCustomer(interestForCustomer);
-    }    
+    }
 
-    // tip function for customers to use after the haircut, or if just feeling generous
+    /**
+     * @notice This function allows anyone to tip the barber with DAI at any time
+     * @param _amount The amount to send as a tip
+     */
     function tip(uint256 _amount) external {
         // transferring the tip to the barber's wallet address
         DAI.transfer(barber, _amount);
@@ -334,15 +476,20 @@ contract HairBookingEscrow {
         emit Tip(_amount, msg.sender);
     }
 
-    // function to cancel the booking
-    function cancelBooking(uint256 _bookingID) external {
+    /**
+     * @notice This function executes the cancellation of a booking
+     * @param _bookingID The booking ID to cancel
+     */
+    function cancelBooking(uint256 _bookingID)
+        external
+        thisBookingExists(_bookingID)
+    {
         // only the customer who made the booking, or the barber, may cancel the booking
         require(
             bookingIDToCustomer[_bookingID] == msg.sender ||
                 msg.sender == barber,
             "You are not permitted to cancel this booking."
         );
-        require(bookingExists[_bookingID], "Booking does not exist");
 
         // marking the booking as no longer existing
         bookingExists[_bookingID] = false;
@@ -371,23 +518,35 @@ contract HairBookingEscrow {
         // emitting event that the booking has been cancelled
         emit bookingCancelled(msg.sender, _bookingID);
     }
-    
-    // function to change the price of a fade - only the barber
+
+    /**
+     * @notice This function allows the barber to change the price of a fade
+     * @param _newPrice The new price of a Fade
+     */
     function changeFadePrice(uint256 _newPrice) external onlyBarber {
         FadePrice = _newPrice;
     }
 
-    // function to change the price of a level cut - only the barber
+    /**
+     * @notice This function allows the barber to change the price of a Level Cut
+     * @param _newPrice The new price of a Level Cut
+     */
     function changeLevelCutPrice(uint256 _newPrice) external onlyBarber {
         LevelCutPrice = _newPrice;
     }
 
-    // function to change the address of the barber - only the barber
+    /**
+     * @notice This function allows the barber to change the address they receive payments to
+     * @param _newAddress The new wallet address of the barber's payments
+     */
     function changeBarberAddress(address _newAddress) external onlyBarber {
         barber = _newAddress;
     }
 
-    // function to change the address of the arbiter - only the barber or arbiter
+    /**
+     * @notice This function allows the barber or arbiter to change the address of the arbiter
+     * @param _newAddress The new address of the arbiter
+     */
     function changeArbiterAddress(address _newAddress) external {
         require(
             msg.sender == barber || arbiter == msg.sender,
