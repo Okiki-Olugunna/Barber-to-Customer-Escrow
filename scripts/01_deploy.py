@@ -24,8 +24,11 @@ def main():
 
     with open("./contract_data/abi.json", "w") as file:
         file.write(json_object)
-    with open("./frontend/utils/abi.json", "w") as file:
+    with open("./frontend/src/utils/abi.json", "w") as file:
+        file.write('{ "abi": ')
+    with open("./frontend/src/utils/abi.json", "a") as file:
         file.write(json_object)
+        file.write(" }")
 
     print("Successfully updated the ABI.\n")
 
@@ -34,9 +37,11 @@ def main():
 
     with open("./contract_data/address.txt", "w") as file:
         file.write(address)
-    with open("./frontend/utils/address.txt", "w") as file:
+    with open("./frontend/src/utils/address.txt", "w") as file:
         file.write(address)
 
     print("Successfully updated the contract address.\n")
 
     print("The deployed contract is ready to be interacted with. :) \n")
+
+    # gas usage: 2,096,343
