@@ -13,7 +13,7 @@ import "../interfaces/ILendingPool.sol";
  * the barber executed the haircut to a good standard.
  * @dev This contract is intended for the polygon mumbai testnet.
  */
-contract HairBookingEscrow {
+contract daiHairBookingEscrow {
     /**
      * @notice This is the contract address of the AAVE V2 lending pool on mumbai
      */
