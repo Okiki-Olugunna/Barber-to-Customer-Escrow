@@ -16,7 +16,7 @@ import "../../interfaces/ILendingPoolAddressesProvider.sol";
  * @notice Payments are made with WMATIC
  * @dev This contract is intended for the polygon mumbai testnet.
  */
-contract HairBookingEscrow_2 {
+contract HairBookingEscrow {
     //
     ILendingPoolAddressesProvider public constant PROVIDER =
         ILendingPoolAddressesProvider(
@@ -61,14 +61,14 @@ contract HairBookingEscrow_2 {
      * Keeping it cheap for testnet purposes.
      * Would be 30 * (10**18) on mainnet
      */
-    uint256 public FadePrice = 3 * (10**16); // 0.03 WMATIC
+    uint256 public FadePrice = 3 * (10**15); // 0.003 WMATIC
 
     /**
      * @notice This is the price of a Level Cut in wei units.
      * Keeping it cheap for testnet purposes.
      * Would be 20 * (10**18) on mainnet
      */
-    uint256 public LevelCutPrice = 2 * (10**15); // 0.002 WMATIC
+    uint256 public LevelCutPrice = 2 * (10**14); // 0.0002 WMATIC
 
     /// @notice This is the booking ID
     uint256 public currentBookingID;
@@ -295,10 +295,10 @@ contract HairBookingEscrow_2 {
         );
 
         // transferring the haircut price amount to this contract
-        // require(
-        WRAPPED_MATIC.transferFrom(msg.sender, address(this), FadePrice);
-        //     "WMATIC transfer failed."
-        // );
+        require(
+            WRAPPED_MATIC.transferFrom(msg.sender, address(this), FadePrice),
+            "WMATIC transfer failed."
+        );
 
         // depositing the payment into aave
         WRAPPED_MATIC.approve(address(POOL), FadePrice);
@@ -388,10 +388,14 @@ contract HairBookingEscrow_2 {
         );
 
         // transferring the haircut price amount to this contract
-        // require(
-        WRAPPED_MATIC.transferFrom(msg.sender, address(this), LevelCutPrice);
-        //     "WMATIC transfer failed."
-        // );
+        require(
+            WRAPPED_MATIC.transferFrom(
+                msg.sender,
+                address(this),
+                LevelCutPrice
+            ),
+            "WMATIC transfer failed."
+        );
 
         // depositing the payment into aave
         WRAPPED_MATIC.approve(address(POOL), LevelCutPrice);
@@ -489,26 +493,45 @@ contract HairBookingEscrow_2 {
         // calculating the amount of interest earned on aave
         uint256 totalBalance = WRAPPED_MATIC_A_TOKEN.balanceOf(address(this));
 
+        // calculating how to split the interest earned on top of the initial deposit
+        uint256 splitCalculation = (totalBalance -
+            bookingIDToAmount[_bookingID]) / 2;
+
         // calculation: giving the barber the intital deposit and 50% of the extra interest
-        uint256 amountForBarber = bookingIDToAmount[_bookingID] + // this line is the initial deposit
-            (totalBalance / 2); // this line is 50% of the interest earned
+        uint256 amountForBarber = bookingIDToAmount[_bookingID] +
+            splitCalculation;
 
         // calculation: giving the customer the other 50% of the extra interest
-        uint256 interestForCustomer = totalBalance / 2;
+        // uint256 interestForCustomer = (totalBalance - amountForBarber) / 2;
+        uint256 interestForCustomer = splitCalculation;
 
         // withdrawing the initial deposit + the interest from aave
         WRAPPED_MATIC_A_TOKEN.approve(address(POOL), totalBalance);
         POOL.withdraw(address(WRAPPED_MATIC), totalBalance, address(this));
 
+        // transferring the barber's pay to the barber
+        require(
+            WRAPPED_MATIC.transfer(barber, amountForBarber),
+            "Transfer to barber failed."
+        );
+        // emitting event that the payment + interest has been sent to the barber
+        emit paymentReceived(amountForBarber);
+
         // tranferring interest to the customer
-        WRAPPED_MATIC.transfer(customer, interestForCustomer);
+        require(
+            WRAPPED_MATIC.transfer(customer, interestForCustomer),
+            "Transfer to customer failed."
+        );
+
         // emitting event that the interest has been paid to customer
         emit paidInterestToCustomer(interestForCustomer);
 
-        // transferring the initial deposit + the remaining interest to the barber
-        WRAPPED_MATIC.transfer(barber, amountForBarber);
-        // emitting event that the payment + interest has been sent to the barber
-        emit paymentReceived(amountForBarber);
+        // deposit the rest of the contract's WMATIC back in aave
+        // uint256 contractBalance = WRAPPED_MATIC.balanceOf(address(this));
+        // if (contractBalance > 0) {
+        // WRAPPED_MATIC.approve(address(POOL), contractBalance);
+        // POOL.deposit(address(WRAPPED_MATIC), contractBalance, address(this), 0);
+        // }
     }
 
     /**
@@ -533,19 +556,32 @@ contract HairBookingEscrow_2 {
 
         // calculating the amount of interest earned on aave
         uint256 totalBalance = WRAPPED_MATIC_A_TOKEN.balanceOf(address(this));
+        uint256 interest = (totalBalance - bookingIDToAmount[_bookingID]) / 2; //
 
         // calculation to give the customer their money back + interest
-        uint256 interestForCustomer = totalBalance;
+        uint256 amountForCustomer = bookingIDToAmount[_bookingID] + interest;
 
         // withdrawing the initial deposit + the interest from aave
         WRAPPED_MATIC_A_TOKEN.approve(address(POOL), totalBalance);
         POOL.withdraw(address(WRAPPED_MATIC), type(uint256).max, address(this));
 
         // tranferring interest to the customer
-        WRAPPED_MATIC.transfer(customer, interestForCustomer);
+        WRAPPED_MATIC.transfer(customer, amountForCustomer);
 
         // emitting event that the interest has been paid to customer
-        emit paidInterestToCustomer(interestForCustomer);
+        emit paidInterestToCustomer(amountForCustomer);
+
+        // deposit the rest of the contract's WMATIC back in aave
+        // uint256 contractBalance = WRAPPED_MATIC.balanceOf(address(this));
+        // if (contractBalance > 0) {
+        //     WRAPPED_MATIC.approve(address(POOL), contractBalance);
+        //     POOL.deposit(
+        //         address(WRAPPED_MATIC),
+        //         contractBalance,
+        //         address(this),
+        //         0
+        //     );
+        // }
     }
 
     /**
@@ -554,7 +590,7 @@ contract HairBookingEscrow_2 {
      */
     function tip(uint256 _amount) external {
         // transferring the tip to the barber's wallet address
-        WRAPPED_MATIC.transfer(barber, _amount);
+        WRAPPED_MATIC.transferFrom(msg.sender, barber, _amount);
 
         // emitting event that someone has tipped the barber
         emit Tip(_amount, msg.sender);
@@ -581,19 +617,18 @@ contract HairBookingEscrow_2 {
         // calculating the amount of interest earned on aave
         uint256 totalBalance = WRAPPED_MATIC_A_TOKEN.balanceOf(address(this));
 
+        // calculating the interest earned on top of the initial deposit
+        uint256 interestEarned = (totalBalance - bookingIDToAmount[_bookingID]);
+
         // calculating how much to send the barber (interest earned)
-        uint256 amountForBarber = totalBalance;
+        uint256 amountForBarber = interestEarned;
 
         // calculating the amount to send to the customer (only their initial deposit)
         uint256 amountForCustomer = bookingIDToAmount[_bookingID];
 
         // withdrawing the customer's deposit from aave
-        // WRAPPED_MATIC_A_TOKEN.approve(address(AAVE_V3_POOL), totalBalance);
-        // AAVE_V3_POOL.withdraw(
-        //     address(WRAPPED_MATIC),
-        //     totalBalance,
-        //     address(this)
-        // );
+        WRAPPED_MATIC_A_TOKEN.approve(address(POOL), totalBalance);
+        POOL.withdraw(address(WRAPPED_MATIC), totalBalance, address(this));
 
         // initialising the customer's address
         address customer = bookingIDToCustomer[_bookingID];
