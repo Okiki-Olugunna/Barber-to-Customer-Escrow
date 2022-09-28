@@ -5,7 +5,7 @@ networks:
   
 provider:
   websockets: ${WEBSOCKETS_KEY}
-  http: ${ALCHEMY_GOERLI_NODE_PROVIDER}
+  http: ${ALCHEMY_MUMBAI_NODE_PROVIDER}
 
 wallets:
   from_key: 
