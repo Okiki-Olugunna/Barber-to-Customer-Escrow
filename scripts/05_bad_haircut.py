@@ -14,7 +14,6 @@ with open("./contract_data/abi.json") as file_b:
 
 contract_instance = w3.eth.contract(address=contract_address, abi=contract_abi)
 
-
 # initialising the amWMATIC erc20 token
 with open("./contract_data/erc20_abi.json") as file_c:
     a_dai_abi = file_c.read()
@@ -49,6 +48,7 @@ def main():
     arbiter_address = config["addresses"]["dev_3_address"]
 
     print("Accounts initialised.\n")
+    
     # barber needs to open up bookings
     print("Getting the current booking state... \n")
     current_booking_state = contract_instance.functions.bookingState().call()
