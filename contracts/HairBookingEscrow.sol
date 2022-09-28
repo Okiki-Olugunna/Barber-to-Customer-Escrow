@@ -506,8 +506,9 @@ contract HairBookingEscrow {
         uint256 interestForCustomer = splitCalculation;
 
         // withdrawing the initial deposit + the interest from aave
-        WRAPPED_MATIC_A_TOKEN.approve(address(POOL), totalBalance);
-        POOL.withdraw(address(WRAPPED_MATIC), totalBalance, address(this));
+        uint256 withdrawalAmount = amountForBarber + interestForCustomer;
+        WRAPPED_MATIC_A_TOKEN.approve(address(POOL), withdrawalAmount);
+        POOL.withdraw(address(WRAPPED_MATIC), withdrawalAmount, address(this));
 
         // transferring the barber's pay to the barber
         require(
@@ -525,13 +526,6 @@ contract HairBookingEscrow {
 
         // emitting event that the interest has been paid to customer
         emit paidInterestToCustomer(interestForCustomer);
-
-        // deposit the rest of the contract's WMATIC back in aave
-        // uint256 contractBalance = WRAPPED_MATIC.balanceOf(address(this));
-        // if (contractBalance > 0) {
-        // WRAPPED_MATIC.approve(address(POOL), contractBalance);
-        // POOL.deposit(address(WRAPPED_MATIC), contractBalance, address(this), 0);
-        // }
     }
 
     /**
@@ -562,26 +556,14 @@ contract HairBookingEscrow {
         uint256 amountForCustomer = bookingIDToAmount[_bookingID] + interest;
 
         // withdrawing the initial deposit + the interest from aave
-        WRAPPED_MATIC_A_TOKEN.approve(address(POOL), totalBalance);
-        POOL.withdraw(address(WRAPPED_MATIC), type(uint256).max, address(this));
+        WRAPPED_MATIC_A_TOKEN.approve(address(POOL), amountForCustomer);
+        POOL.withdraw(address(WRAPPED_MATIC), amountForCustomer, address(this));
 
         // tranferring interest to the customer
         WRAPPED_MATIC.transfer(customer, amountForCustomer);
 
         // emitting event that the interest has been paid to customer
         emit paidInterestToCustomer(amountForCustomer);
-
-        // deposit the rest of the contract's WMATIC back in aave
-        // uint256 contractBalance = WRAPPED_MATIC.balanceOf(address(this));
-        // if (contractBalance > 0) {
-        //     WRAPPED_MATIC.approve(address(POOL), contractBalance);
-        //     POOL.deposit(
-        //         address(WRAPPED_MATIC),
-        //         contractBalance,
-        //         address(this),
-        //         0
-        //     );
-        // }
     }
 
     /**
@@ -627,8 +609,9 @@ contract HairBookingEscrow {
         uint256 amountForCustomer = bookingIDToAmount[_bookingID];
 
         // withdrawing the customer's deposit from aave
-        WRAPPED_MATIC_A_TOKEN.approve(address(POOL), totalBalance);
-        POOL.withdraw(address(WRAPPED_MATIC), totalBalance, address(this));
+        uint256 amountToWithdraw = amountForBarber + amountForCustomer;
+        WRAPPED_MATIC_A_TOKEN.approve(address(POOL), amountToWithdraw);
+        POOL.withdraw(address(WRAPPED_MATIC), amountToWithdraw, address(this));
 
         // initialising the customer's address
         address customer = bookingIDToCustomer[_bookingID];
