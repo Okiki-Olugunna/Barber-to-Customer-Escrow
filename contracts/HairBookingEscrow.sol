@@ -162,6 +162,13 @@ contract HairBookingEscrow {
     event bookingCancelled(address indexed canceller, uint256 bookingID);
 
     /**
+     * @notice This event gets triggered when a customer does not turn up for a booking
+     * @param _customer The address of the customer that did not show up
+     * @param bookingID The booking ID that was cancelled
+     */
+    event customerDidNotShow(address _customer, uint256 bookingID);
+
+    /**
      * @notice This event gets triggered when the barber gets paid the
      * deposit +  the interest, on completion of the haircut
      * @param _amount The amount paid to the barber
@@ -185,6 +192,12 @@ contract HairBookingEscrow {
     /// @dev Only the barber can call functions marked by this modifier
     modifier onlyBarber() {
         require(msg.sender == barber, "You are not the barber.");
+        _;
+    }
+
+    /// @dev Only the arbiter can call functions marked by this modifier
+    modifier onlyArbiter() {
+        require(msg.sender == arbiter, "You are not the arbiter.");
         _;
     }
 
@@ -479,11 +492,9 @@ contract HairBookingEscrow {
      */
     function completed(uint256 _bookingID)
         external
+        onlyArbiter
         thisBookingExists(_bookingID)
     {
-        // only the arbiter can mark the haircut as complete
-        require(msg.sender == arbiter, "You are not the arbiter.");
-
         // updating the booking ID as no longer existing
         bookingExists[_bookingID] = false;
 
@@ -535,13 +546,9 @@ contract HairBookingEscrow {
      */
     function notUpToStandard(uint256 _bookingID)
         external
+        onlyArbiter
         thisBookingExists(_bookingID)
     {
-        require(
-            msg.sender == arbiter,
-            "You are not permitted to call this function."
-        );
-
         // updating the booking ID as no longer existing
         bookingExists[_bookingID] = false;
 
@@ -564,18 +571,6 @@ contract HairBookingEscrow {
 
         // emitting event that the interest has been paid to customer
         emit paidInterestToCustomer(amountForCustomer);
-    }
-
-    /**
-     * @notice This function allows anyone to tip the barber at any time
-     * @param _amount The amount to send as a tip
-     */
-    function tip(uint256 _amount) external {
-        // transferring the tip to the barber's wallet address
-        WRAPPED_MATIC.transferFrom(msg.sender, barber, _amount);
-
-        // emitting event that someone has tipped the barber
-        emit Tip(_amount, msg.sender);
     }
 
     /**
@@ -624,6 +619,49 @@ contract HairBookingEscrow {
 
         // emitting event that the booking has been cancelled
         emit bookingCancelled(msg.sender, _bookingID);
+    }
+
+    /**
+     * @notice This function is executed when a customer does not
+     * turn up for their appointment
+     * @param _bookingID The booking ID of the appointment
+     */
+    function noShow(uint256 _bookingID) external onlyArbiter {
+        // marking the booking as no longer existing
+        bookingExists[_bookingID] = false;
+
+        // calculating the amount in aave
+        uint256 totalBalance = WRAPPED_MATIC_A_TOKEN.balanceOf(address(this));
+
+        // calculating the interest earned on top of the initial deposit
+        uint256 interestEarned = (totalBalance - bookingIDToAmount[_bookingID]);
+
+        // calculating how much to send the barber (interest earned + initial deposit)
+        uint256 amountForBarber = interestEarned +
+            bookingIDToAmount[_bookingID];
+
+        // withdrawing from aave
+        uint256 amountToWithdraw = amountForBarber;
+        WRAPPED_MATIC_A_TOKEN.approve(address(POOL), amountToWithdraw);
+        POOL.withdraw(address(WRAPPED_MATIC), amountToWithdraw, address(this));
+
+        // transferring the payment to the barber
+        WRAPPED_MATIC.transfer(barber, amountForBarber);
+
+        // emitting event that customer did not show up
+        emit customerDidNotShow(bookingIDToCustomer[_bookingID], _bookingID);
+    }
+
+    /**
+     * @notice This function allows anyone to tip the barber at any time
+     * @param _amount The amount to send as a tip
+     */
+    function tip(uint256 _amount) external {
+        // transferring the tip to the barber's wallet address
+        WRAPPED_MATIC.transferFrom(msg.sender, barber, _amount);
+
+        // emitting event that someone has tipped the barber
+        emit Tip(_amount, msg.sender);
     }
 
     /**
