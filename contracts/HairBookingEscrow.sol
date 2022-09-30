@@ -626,7 +626,11 @@ contract HairBookingEscrow {
      * turn up for their appointment
      * @param _bookingID The booking ID of the appointment
      */
-    function noShow(uint256 _bookingID) external onlyArbiter {
+    function noShow(uint256 _bookingID) 
+        external 
+        onlyArbiter 
+        thisBookingExists(_bookingID)
+    {
         // marking the booking as no longer existing
         bookingExists[_bookingID] = false;
 
