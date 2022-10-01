@@ -1,5 +1,5 @@
 ## Barber-to-Customer Escrow
-A smart contract based booking platform for hairdressers & barbers
+A smart contract based booking platform for barbers
 
 #### How It Works:
 - the customer makes a booking in advance 
@@ -21,3 +21,9 @@ To see a simulation of this, view [this script](https://github.com/Okiki-Olugunn
 #### If a customer cancels the booking: 
 - the barber gets the interest earned (another incentive to use this dapp) 
 - the customer only gets back their deposit 
+
+#### If a customer does not show up to a booking:
+- the barber gets both the deposit for the haircut, plus the interest earned
+
+#### Extra info:
+- When a booking is made, an SMS message is sent to the barber using a combination of Twilio's SMS API and Alchemy Notify, which listens to on-chain activity at the booking platform's contract address
