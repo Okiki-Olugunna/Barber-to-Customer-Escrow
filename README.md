@@ -1,6 +1,8 @@
 ## Barber-to-Customer Escrow
 A smart contract based booking platform for barbers
 
+<b>*Website:*</b> https://barber-to-customer-escrow.okikicodes.repl.co/ 
+
 #### How It Works:
 - the customer makes a booking in advance 
 - the payment is held in an escrow contract, e.g. 50 DAI, until the time of the haircut 
