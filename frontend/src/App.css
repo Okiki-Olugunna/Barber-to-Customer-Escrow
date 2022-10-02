@@ -1,0 +1,353 @@
+.App {
+  text-align: center;
+  background-image: url("images/barbershop-interior.jpg");
+}
+
+h1 {
+  margin: 0;
+}
+
+#slogan {
+  margin: 0;
+}
+
+p {
+  font-size: 0.8em;
+}
+
+#calendar {
+  background: white;
+  width: 90%;
+  margin: 20px;
+  color: black;
+  padding: 30px;
+}
+
+button {
+  background-color: black;
+  color: white;
+  font-size: 18px;
+  padding: 10px;
+  border-radius: 10px;
+  margin: 20px;
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+}
+#get-tokens{
+  height: 60px;
+  margin-top: 0px;
+  padding: 0px;
+  display: inline-flex;
+  margin-left: 75%;
+  align-items: center;
+  background-color: darkgray;
+  border-radius: 10px;
+  text-align: center;
+}
+#get-matic{
+  /* height: 48px; */
+  font-size: 13px;
+  display: flex;
+  /* width: 140px; */
+  /* width: auto; */
+  text-align: center;
+  align-content: center;
+  /* height: auto; */
+  background-color: purple;
+}
+#get-wmatic {
+  /* height: 48px; */
+  font-size: 13px;
+  /* line-height: 13px; */
+  display: flex;
+  /* width: 140px; */
+  text-align: center;
+  align-content: center;
+  /* height: auto; */
+  background-color: rgb(67, 134, 4); /* rgb(77, 74, 74) */
+}
+
+#line-under-title{
+  margin: auto;
+  margin-top: 25px;
+  width: 75%;
+  line-height: 5px;
+}
+
+#booking-state{
+  background: grey; /* #61dafb */
+  border-radius: 10px;
+  height: auto;
+  width: 40%;
+  margin: auto;
+  color: brown;
+}
+
+#prices{
+  margin: 5px;
+  margin-bottom: 0;
+  padding: 0px;
+}
+#on-screen-fade-price{
+  padding: 0;
+}
+#on-screen-levelcut-price{
+  padding: 0;
+}
+
+#select-a-haircut{
+  display: inline-block;
+  background: black;
+  border-radius: 10px;
+  padding: 3px;
+  margin: 10px;
+  margin-top: 0;
+  height: 110px;
+  width: 300px;
+  
+}
+#select-haircut-header{
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+#fade-checkbox{
+  padding: 10px;
+  margin: 10px;
+  width: auto;
+}
+#fade-label{
+  margin-right: 10px;
+  font-size: 17px;
+}
+#levelcut-checkbox{
+  padding: 10px;
+  margin: 10px;
+  margin-right: 5px;
+  margin-left: 50px;
+  width: auto;
+}
+#levelcut-label{
+  margin-left: 1px;
+  font-size: 16px;
+}
+
+#text-above-calendar{
+  /* background-color: #282c34; */
+  margin: auto;
+  /* width: 400px; */
+  padding: 1px;
+  padding-top: 5px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+#barber {
+  height: fit-content;
+}
+
+#open-the-bookings:hover{
+  scale: 1.03;
+  cursor: pointer;
+}
+#open-the-bookings{
+  background-color: #cd8028;
+  display: inline-block;
+  border-radius: 10px;
+  width: 25%;
+  margin: auto;
+  margin-right: 15px;
+  margin-bottom: 15px;
+  padding: 5px;
+}
+
+#close-the-bookings:hover{
+  scale: 1.03;
+  cursor: pointer;
+}
+#close-the-bookings{
+  background-color: rgb(37, 59, 172);
+  display: inline-block;
+  border-radius: 10px;
+  width: 25%;
+  margin: auto;
+  margin-left: 15px;
+  margin-bottom: 15px;
+  padding: 5px;
+}
+
+#fade-price {
+  background: white;
+  color: black;
+  padding: 20px;
+  padding-top: 1px;
+  padding-bottom: 45px;
+  margin: 20px auto;
+  margin-bottom: 35px;
+  width: 1000px;
+  height: 170px;
+  align-items: center;
+}
+
+#level-cut-price {
+  background: white;
+  color: black;
+  padding: 20px;
+  padding-top: 1px;
+  padding-bottom: 45px;
+  margin: 20px auto;
+  margin-bottom: 35px;
+  width: 1000px;
+  height: 170px;
+  align-items: center;
+}
+
+#settings-button {
+  margin-top: 10px;
+  background: #282c34;
+  color: white;
+}
+
+#confirm-dialog-header {
+  padding: 10px;
+  margin: 10px;
+}
+
+#arbiter{
+  /* height: 100px; */
+  /* display:inline-block; */
+  margin: 20px;
+  padding: 20px;
+  padding-top: 1px;
+  width: auto;
+}
+
+#arbiter-good-haircut {
+  display: block;
+  background: lightgreen;
+  font-size: medium;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+  margin: 10px;
+  color: black;
+  width: 300px;
+  height: 160px;
+  border-radius: 5px;
+}
+
+#arbiter-bad-haircut {
+  display: block;
+  background: lightcoral;
+  font-size: medium;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+  margin: 10px;
+  color: black;
+  width: 300px;
+  height: 160px; /*85*/
+  border-radius: 5px;
+
+}
+
+#arbiter-no-show{
+  display: block;
+  background: blue;
+  font-size: medium;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+  margin: 10px;
+  color: white;
+  width: 300px;
+  height: 160px; /*85*/
+  border-radius: 5px;
+}
+
+#submit {
+  padding: 5px;
+  margin: 10px;
+  font-size: 15px;
+}
+#submit:hover {
+  scale: 1.1;
+  font-weight: 700;
+}
+
+#no-show-submit {
+  color: white;
+}
+#no-show-submit:hover {
+  scale: 1.1;
+  font-weight: 700;
+}
+
+#cancel-booking:hover{
+  scale: 1.04;
+}
+#cancel-booking {
+  background-color: #282c34;
+  display: inline-block;
+  margin: auto;
+  padding: 25px;
+  padding-bottom: 35px;
+  width: 25%;
+  border-radius: 7px;
+  /* align-items: center; */
+}
+#cancel-booking-submit{
+  background-color: white;
+}
+#cancel-booking-submit:hover{
+  scale: 1.1;
+}
+
+#tip-the-barber:hover{
+  scale: 1.04;
+}
+#tip-the-barber{
+  background-color: #282c34;
+  display: inline-block;
+  margin: auto;
+  margin-left: 25px;
+  padding: 25px;
+  padding-bottom: 35px;
+  width: 25%;
+  border-radius: 7px;
+}
+#tip-the-barber-submit{
+  background-color: white;
+}
+#tip-the-barber-submit:hover{
+  scale: 1.1;
+}
+
+.App-header {
+  background-color: #282c34;
+  background-image: url("images/barbershop-interior.jpg");
+  background-blend-mode: soft-light;
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  padding: 30px;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
