@@ -1,6 +1,7 @@
 import "./App.css";
 import detectEthereumProvider from "@metamask/detect-provider";
 import { useEffect, useState } from "react";
+import { utils } from "ethers";
 import Calendar from "./components/Calendar";
 
 function App() {
@@ -28,11 +29,12 @@ function App() {
       // getting the chainid of the current network the user is connected to
       const chainId = await provider.request({ method: "eth_chainId" });
 
-      if (chainId !== "0x13881") {
+      const mumbai = utils.hexValue(80001);
+      if (chainId !== mumbai) {
         // switching the user's network to Mumbai
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x80001" }],
+          params: [{ chainId: mumbai }],
         });
       }
 
