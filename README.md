@@ -1,7 +1,7 @@
 ## Barber-to-Customer Escrow
 A smart contract based booking platform for barbers
 
-<b>*Website:*</b> https://barber-to-customer-escrow.okikicodes.repl.co/ 
+<b>*Website:*</b> https://barber-to-customer-escrow.vercel.app/ 
 
 <img src="https://user-images.githubusercontent.com/92333005/193454767-021642bd-9451-441b-b654-c106935d47ea.png" width=700/>
 
